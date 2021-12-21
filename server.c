@@ -6,7 +6,7 @@
 /*   By: vsimeono <vsimeono@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/19 17:52:14 by vsimeono          #+#    #+#             */
-/*   Updated: 2021/12/20 01:04:06 by vsimeono         ###   ########.fr       */
+/*   Updated: 2021/12/20 15:37:20 by vsimeono         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,20 +14,13 @@
 
 void	receive(int signal, siginfo_t *siginfo, void *context)
 {
-	static	char	c;
-	static	int		i;
+	static char		c;
+	static int		i;
 
-	// i = 0;
 	if (signal == SIGUSR1)
-	{
 		c += 0 << i;
-		// write(1, &c, 1);
-	}
 	if (signal == SIGUSR2)
-	{
 		c += 1 << i;
-		// write(1, &c, 1);
-	}
 	i++;
 	if (i == 8)
 	{
@@ -83,8 +76,8 @@ void	ft_putstr_fd(char *s, int fd)
 
 int	main(void)
 {
-	struct sigaction sig;
-	
+	struct sigaction	sig;
+
 	sig.sa_sigaction = &receive;
 	sig.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &sig, NULL);

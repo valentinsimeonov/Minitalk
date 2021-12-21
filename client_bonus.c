@@ -6,42 +6,38 @@
 /*   By: vsimeono <vsimeono@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/20 13:39:50 by vsimeono          #+#    #+#             */
-/*   Updated: 2021/12/20 13:39:52 by vsimeono         ###   ########.fr       */
+/*   Updated: 2021/12/22 00:51:10 by vsimeono         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minitalk.h"
+#include "minitalk_bonus.h"
 
-int		flag;
+int		g_flag;
 
 void	send(int pid, char *str, size_t len)
 {
 	int		shift;
 	size_t	i;
 
-	// shift = 0;
 	i = 0;
 	while (i <= len)
 	{
-		// write(1, "Top of While\n", 13);
 		shift = 0;
 		while (shift <= 7)
 		{
-			// write(1, "Top2 of While\n", 14);
+			g_flag = 0;
 			if ((str[i] >> shift) & 1)
 			{
 				kill(pid, SIGUSR2);
-				// write(1, "Signal: 1\n", 10);
-				usleep(10000);
+				usleep(100000);
 			}
 			else
 			{
 				kill(pid, SIGUSR1);
-				// write(1, "Signal: 0\n", 10);
 				usleep(100000);
 			}
 			shift++;
-			while (flag == 0)
+			while (g_flag == 0)
 				pause();
 		}
 		i++;
@@ -49,11 +45,11 @@ void	send(int pid, char *str, size_t len)
 }
 
 void	get_ack(int sig, siginfo_t *info, void *ucontext)
-{
+{	
+	g_flag = 1;
 	(void) ucontext;
 	(void) info;
 	(void) sig;
-	flag = 1;
 }
 
 int	ft_atoi(const char *str)
@@ -99,9 +95,9 @@ size_t	ft_strlen(const char *s)
 
 int	main(int argc, char **argv)
 {
-	struct sigaction sig;
-	
-	int		pid;
+	struct sigaction	sig;
+	int					pid;
+
 	sig.sa_sigaction = &get_ack;
 	sig.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &sig, NULL);

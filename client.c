@@ -6,42 +6,38 @@
 /*   By: vsimeono <vsimeono@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/19 17:52:18 by vsimeono          #+#    #+#             */
-/*   Updated: 2021/12/20 13:35:37 by vsimeono         ###   ########.fr       */
+/*   Updated: 2021/12/22 00:43:13 by vsimeono         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-int		flag;
+int		g_flag;
 
 void	send(int pid, char *str, size_t len)
 {
 	int		shift;
 	size_t	i;
 
-	// shift = 0;
 	i = 0;
 	while (i <= len)
 	{
-		// write(1, "Top of While\n", 13);
 		shift = 0;
 		while (shift <= 7)
 		{
-			// write(1, "Top2 of While\n", 14);
+			g_flag = 0;
 			if ((str[i] >> shift) & 1)
 			{
 				kill(pid, SIGUSR2);
-				// write(1, "Signal: 1\n", 10);
-				usleep(10000);
+				usleep(100000);
 			}
 			else
 			{
 				kill(pid, SIGUSR1);
-				// write(1, "Signal: 0\n", 10);
 				usleep(100000);
 			}
 			shift++;
-			while (flag == 0)
+			while (g_flag == 0)
 				pause();
 		}
 		i++;
@@ -49,11 +45,11 @@ void	send(int pid, char *str, size_t len)
 }
 
 void	get_ack(int sig, siginfo_t *info, void *ucontext)
-{
+{	
+	g_flag = 1;
 	(void) ucontext;
 	(void) info;
 	(void) sig;
-	flag = 1;
 }
 
 int	ft_atoi(const char *str)
@@ -97,11 +93,53 @@ size_t	ft_strlen(const char *s)
 	return (i);
 }
 
+void	ft_putnbr_fd(int n, int fd)
+{
+	int	temp;
+
+	temp = n;
+	if (n == -2147483648)
+	{
+		ft_putstr_fd("-2147483648", fd);
+		return ;
+	}
+	if (temp < 0)
+	{
+		ft_putchar_fd('-', fd);
+		temp *= -1;
+	}
+	if (temp < 10)
+	{
+		ft_putchar_fd(temp + '0', fd);
+	}
+	else
+	{
+		ft_putnbr_fd(temp / 10, fd);
+		ft_putnbr_fd(temp % 10, fd);
+	}
+}
+
+void	ft_putchar_fd(char c, int fd)
+{
+	write(fd, &c, 1);
+}
+
+void	ft_putstr_fd(char *s, int fd)
+{
+	if (s)
+	{
+		while (*s)
+		{
+			write(fd, s++, 1);
+		}
+	}
+}
+
 int	main(int argc, char **argv)
 {
-	struct sigaction sig;
-	
-	int		pid;
+	struct sigaction	sig;
+	int					pid;
+
 	sig.sa_sigaction = &get_ack;
 	sig.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &sig, NULL);
@@ -110,6 +148,7 @@ int	main(int argc, char **argv)
 		pid = ft_atoi(argv[1]);
 		send(pid, argv[2], ft_strlen(argv[2]));
 	}
+	
 	if (argc != 3)
 		write(1, "Try again, please\n", 18);
 	return (0);
